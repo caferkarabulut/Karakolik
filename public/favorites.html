@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="tr"><head>
+<meta charset="UTF-8"><title>Favori Maçlarım</title>
+<link rel="stylesheet" href="css/styles.css">
+</head><body>
+<nav>
+  <a href="football.html">Futbol</a>
+  <a href="basketball.html">Basketbol</a>
+  <a href="volleyball.html">Voleybol</a>
+  <a href="favorites.html">Favoriler</a>
+
+  <span style="float:right">
+    <a id="login-link" href="login.html">Giriş</a> |
+    <a id="register-link" href="register.html">Kayıt</a>
+    <span id="welcome-div" style="display:none">
+      Merhaba <b id="welcome-user"></b> |
+      <button onclick="logout()">Çıkış</button>
+    </span>
+  </span>
+</nav>
+
+<h2>Favori Maçlarım</h2>
+<table>
+  <thead><tr>
+    <th>Sil</th><th>Tarih</th><th>Ev Sahibi</th><th>Deplasman</th><th>Skor</th>
+  </tr></thead>
+  <tbody id="fav-body"></tbody>
+</table>
+
+<script src="js/scripts.js"></script>
+<script>
+  if(!getToken()){ alert('Önce giriş yapın'); location.href='login.html'; }
+  else loadFavorites();
+</script>
+</body></html>

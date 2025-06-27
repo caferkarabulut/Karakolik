@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="tr"><head>
+<meta charset="UTF-8"><title>Kayıt Ol</title>
+<link rel="stylesheet" href="css/styles.css">
+</head><body>
+<nav><a href="index.html">Ana Sayfa</a></nav>
+
+<h2>Kayıt Ol</h2>
+<form id="reg-form">
+  <label>Kullanıcı Adı <input name="username" required></label><br>
+  <label>Şifre <input type="password" name="password" required></label><br>
+  <button type="submit">Kayıt</button>
+</form>
+
+<script src="js/scripts.js"></script>
+<script>
+document.getElementById('reg-form').addEventListener('submit', registerUser);
+</script>
+</body></html>

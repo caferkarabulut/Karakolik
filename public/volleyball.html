@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="tr"><head>
+<meta charset="UTF-8"><title>Voleybol Maçları</title>
+<link rel="stylesheet" href="css/styles.css">
+</head><body>
+<nav>
+  <a href="football.html">Futbol</a>
+  <a href="basketball.html">Basketbol</a>
+  <a href="volleyball.html">Voleybol</a>
+
+  <span style="float:right">
+    <a id="login-link" href="login.html">Giriş</a> |
+    <a id="register-link" href="register.html">Kayıt</a>
+
+    <span id="welcome-div" style="display:none">
+      Merhaba <b id="welcome-user"></b> |
+      <button onclick="logout()">Çıkış</button>
+    </span>
+  </span>
+</nav>
+
+
+<h2>Voleybol – Yaklaşan / Son Maçlar</h2>
+<table>
+  <thead><tr><th>Fav</th><th>Tarih</th><th>Ev Sahibi</th><th>Deplasman</th><th>Skor</th></tr></thead>
+  <tbody id="match-body"></tbody>
+</table>
+
+<script src="js/scripts.js"></script>
+<script>loadMatches('volleyball');</script>
+</body></html>
