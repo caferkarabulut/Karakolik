@@ -1,23 +1,25 @@
 // cache-refresh.js
 const cron  = require('node-cron');
-const fetch = (...a) => import('node-fetch').then(({default: f}) => f(...a)); // Node<18
+const fetch = (...a) => import('node-fetch').then(({default: f}) => f(...a));
 
 cron.schedule('*/30 * * * *', async () => {
   try {
-    /* --- fikstürleri tazele --- */
-    await fetch('http://localhost:3000/api/football/matches');
-    await fetch('http://localhost:3000/api/basketball/matches');
-    await fetch('http://localhost:3000/api/volleyball/matches');
+    // Futbol fikstürleri
+    await fetch('http://localhost:3000/api/football/matches?league=203&season=2023');
 
-    /* --- puan durumunu tazele (Süper Lig) --- */
-    await fetch('http://localhost:3000/api/football/standings?league=203&season=2023');
-    await fetch('http://localhost:3000/api/football/standings?league=39&season=2023');  // Premier League
-await fetch('http://localhost:3000/api/football/standings?league=140&season=2023'); // La Liga
-    await fetch('http://localhost:3000/api/football/standings?league=61&season=2023');  // Serie A  
-    await fetch('http://localhost:3000/api/football/standings?league=78&season=2023');  // Bundesliga
-    await fetch('http://localhost:3000/api/football/standings?league=135&season=2023'); // Ligue 1
-    
-    console.log('[cron] Veri yenilendi', new Date().toLocaleTimeString());
+    // Futbol puan durumları
+    const seasons = [
+      { league: 203, name: 'Süper Lig' },
+      { league: 39,  name: 'Premier League' },
+      { league: 140, name: 'La Liga' },
+      { league: 135, name: 'Serie A' },
+      { league: 78,  name: 'Bundesliga' }
+    ];
+    for (const s of seasons) {
+      await fetch(`http://localhost:3000/api/football/standings?league=${s.league}&season=2023`);
+    }
+
+    console.log('[cron] Futbol verileri yenilendi', new Date().toLocaleTimeString());
   } catch (e) {
     console.error('[cron] Yenileme hatası:', e.message);
   }

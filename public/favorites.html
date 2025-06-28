@@ -10,7 +10,6 @@
 </head>
 <body class="bg-light">
 
-<!-- ░░░ NAVBAR ░░░ -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 mb-4">
   <a class="navbar-brand" href="index.html">Karakolik</a>
 
@@ -18,8 +17,6 @@
     <a class="nav-link active" href="favorites.html">Favoriler</a>
     <a class="nav-link" href="index.html">Ana Sayfa</a>
     <a class="nav-link" href="football.html">Futbol</a>
-    <a class="nav-link" href="basketball.html">Basketbol</a>
-    <a class="nav-link" href="volleyball.html">Voleybol</a>
   </div>
 
   <div class="d-flex align-items-center">
@@ -32,18 +29,13 @@
     </span>
   </div>
 </nav>
-<!-- ░░░┘ NAVBAR └░░░ -->
 
 <div class="container">
   <h2 class="mb-4">Favorilerim</h2>
 
-  <!-- ▓▓ FAVORİ TAKIMLAR ▓▓ -->
   <h4 class="mb-2">Favori Takımlar</h4>
-  <div id="fav-teams" class="d-flex flex-wrap gap-2 mb-5">
-    <!-- JS doldurur; boşsa mesaj gösterilir -->
-  </div>
+  <div id="fav-teams" class="d-flex flex-wrap gap-2 mb-5"></div>
 
-  <!-- ▓▓ FAVORİ MAÇLAR ▓▓ -->
   <h4 class="mb-2">Favori Maçlar</h4>
   <table class="table table-sm table-striped shadow-sm">
     <thead class="table-dark">
@@ -55,15 +47,14 @@
   </table>
 </div>
 
-<!-- Uygulama JS -->
 <script src="js/scripts.js"></script>
 <script>
-  /* Giriş yapılmamışsa login'e yönlendir, aksi halde favorileri çek */
-  if (!getToken()){
-    alert('Önce giriş yapın'); location.href='login.html';
+  if (!getToken()) {
+    alert('Önce giriş yapın');
+    location.href = 'login.html';
   } else {
-    loadFavTeams();   // takımlar
-    loadFavorites();  // maçlar
+    loadFavTeams();
+    loadFavorites();
   }
 </script>
 </body>
