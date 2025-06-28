@@ -4,7 +4,7 @@
 function saveToken(t){ localStorage.setItem('token', t); }
 function getToken(){  return localStorage.getItem('token'); }
 function logout(){    localStorage.removeItem('token'); location.href='index.html'; }
-/* Bootstrap alert oluşturur */
+/* Bootstrap alert */
 function showAlert(msg, type='danger'){
   const holder = document.getElementById('auth-alert');
   if(!holder) return;
@@ -14,7 +14,6 @@ function showAlert(msg, type='danger'){
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>`;
 }
-
 
 /* ============== NAVBAR ============== */
 function renderNav(){
@@ -72,25 +71,29 @@ async function registerUser(e){
 /* =========================
    2) MAÇ FİKSTÜRÜ + FAVORİLER
    ========================= */
-async function loadMatches(sport, leagueId=null){
+
+/* (a)  ► loadMatches(league, season)  */
+async function loadMatches(leagueId, season){
   try{
-    const url = leagueId
-      ? `/api/${sport}/matches?league=${leagueId}&season=2023`
-      : `/api/${sport}/matches`;
+    const url = `/api/football/matches?league=${leagueId}&season=${season}`;
     const res  = await fetch(url);
     const data = await res.json();
 
- /* >>> EKLENEN KONTROL ------------- */
-    if (!Array.isArray(data)) {          // 500 veya hata objesi geldiyse
+    /* Guard – beklenmeyen obje geldiyse */
+    if (!Array.isArray(data)){
       console.error('[loadMatches]', data);
       alert(data.msg || 'Maç verisi alınamadı');
-      return;                            // tablo doldurma kısmına girmesin
+      return;
     }
-    /* <<< ----------------------------- */
 
-    const tbody= document.getElementById('match-body');
-    if(!tbody) return;                    // sayfa kontrolü
+    const tbody = document.getElementById('match-body');
+    if(!tbody) return;
     tbody.innerHTML = '';
+
+    if(!data.length){
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Bu lig için yakın maç bulunamadı</td></tr>';
+      return;
+    }
 
     data.forEach(m=>{
       const token = getToken();
@@ -121,7 +124,7 @@ async function addFav(matchId, btn){
         'Content-Type':'application/json',
         'Authorization':'Bearer '+token
       },
-      body: JSON.stringify({ matchId })
+      body: JSON.stringify({ fixture_id: matchId })
     });
     if(!r.ok) throw await r.json();
     btn.textContent = '★';
@@ -143,7 +146,7 @@ async function loadFavorites(){
     data.forEach(f=>{
       tbody.innerHTML += `
         <tr>
-          <td><button onclick="removeFav(${f.id})">🗑️</button></td>
+          <td><button onclick="removeFav(${f.fixture_id})">🗑️</button></td>
           <td>${new Date(f.date).toLocaleString('tr-TR')}</td>
           <td>${f.home}</td><td>${f.away}</td><td>${f.score}</td>
         </tr>`;
@@ -175,10 +178,10 @@ const leagueMap = {
   78  : 'Bundesliga'
 };
 
-/* Lig kartlarını doldur (football.html sayfasında) */
+/* Lig kartlarını doldur */
 function buildLeagueCards(){
   const wrap = document.getElementById('leagueCards');
-  if(!wrap) return;                       // diğer sayfalarda yok
+  if(!wrap) return;
   Object.entries(leagueMap).forEach(([id, name])=>{
     const col = document.createElement('div');
     col.className = 'col';
@@ -186,7 +189,7 @@ function buildLeagueCards(){
       <div class="card h-100 text-center shadow-sm">
         <div class="card-body d-flex flex-column justify-content-center">
           <button class="btn btn-outline-primary"
-                  onclick="selectLeague(${id}, '${name}')">${name}</button>
+                  onclick="selectLeague(${id}, 2023, '${name}')">${name}</button>
         </div>
       </div>`;
     wrap.appendChild(col);
@@ -194,15 +197,16 @@ function buildLeagueCards(){
 }
 document.addEventListener('DOMContentLoaded', buildLeagueCards);
 
-/* Lig kartına tıklanınca */
-function selectLeague(leagueId, leagueName){
-  showStandings(leagueId, 2023, leagueName);
-  loadMatches('football', leagueId);
+/* (b)  ► Lig kartına tıklanınca */
+function selectLeague(leagueId, season, leagueName){
+  showStandings(leagueId, season, leagueName);
+  loadMatches(leagueId, season);              // ☆ butonları için
 }
 
-/* Puan durumu çek & göster */
+/* Puan durumu çek & göster  –  favori takımlar ★ */
 async function showStandings(league, season, name){
   try{
+    /* 1) Puan tablosu */
     const res  = await fetch(`/api/football/standings?league=${league}&season=${season}`);
     const data = await res.json();
 
@@ -211,14 +215,36 @@ async function showStandings(league, season, name){
     const table = document.getElementById('standTable');
     if(!tbody) return;
 
+    /* 2) Kullanıcının favori takım id’leri */
+    let favIds = [];
+    const token = getToken();
+    if (token){
+      const favRes = await fetch('/api/team-fav',{
+        headers:{ 'Authorization':'Bearer '+token }
+      });
+      if (favRes.ok){
+        const favTeams = await favRes.json();          // [{id,name,logo}...]
+        favIds = favTeams.map(t=>t.id);                // [101,1950,...]
+      }
+    }
+
+    /* 3) Tabloyu doldur */
     title.textContent = `${name} ${season}/${season+1} Puan Durumu`;
     title.style.display = 'block';
 
-    tbody.innerHTML='';
+    tbody.innerHTML = '';
     data.forEach(r=>{
+      const isFav = favIds.includes(r.team_id);        // ★ mı ☆ mı?
       tbody.innerHTML += `
         <tr>
-          <td>${r.rank}</td><td>${r.team}</td>
+          <td>${r.rank}</td>
+          <td>
+            <button class="btn btn-sm p-0 me-1"
+                    onclick="toggleTeamFav(${r.team_id}, this)">
+              ${isFav ? '★' : '☆'}
+            </button>
+            ${r.team}
+          </td>
           <td>${r.played}</td><td>${r.win}</td><td>${r.draw}</td><td>${r.lose}</td>
           <td>${r.goals_for}</td><td>${r.goals_against}</td><td><b>${r.points}</b></td>
         </tr>`;
@@ -229,4 +255,53 @@ async function showStandings(league, season, name){
     alert('Puan durumu alınamadı');
   }
 }
+
+
+/* (c)  ► Sayfa ilk açılışta Süper Lig 2023 */
+document.addEventListener('DOMContentLoaded', ()=>{
+  selectLeague(203, 2023, 'Süper Lig');
+});
 /* ============== ARAMA ============== */
+
+/* ===== TAKIM FAVORİLERİ ===== */
+/* ===== TAKIM FAVORİ toggle ===== */
+async function toggleTeamFav(teamId, btn){
+  try{
+    const r = await fetch('/api/team-fav',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+getToken()
+      },
+      body: JSON.stringify({ team_id: teamId })   // ←← değişen satır
+    });
+    const { added } = await r.json();
+    btn.innerHTML = added ? '★' : '☆';
+    /* ↴ Favoriler sayfasını açık tuttuysak yenile */
+    loadFavTeams();
+  }catch(e){ console.error('[toggleTeamFav]', e); }
+}
+
+
+
+/* Favori TAKIM & MAÇ listesi sayfası */
+async function loadFavTeams(){
+  const wrap = document.getElementById('fav-teams');
+  if(!wrap) return;
+  try{
+    const r = await fetch('/api/team-fav',{
+      headers:{ 'Authorization':'Bearer '+getToken() }
+    });
+    if(!r.ok) throw await r.json();
+    const data = await r.json();
+    wrap.innerHTML = data.length
+      ? data.map(t=>`
+          <div class="card me-2 mb-2 shadow-sm" style="width:9rem">
+            <img src="${t.logo || 'img/placeholder.svg'}" class="card-img-top p-2" alt="">
+            <div class="card-body p-2 text-center">
+              <small>${t.name}</small>
+            </div>
+          </div>`).join('')
+      : '<p class="text-muted">Favori takımınız henüz yok</p>';
+  }catch(e){ console.error(e); }
+}

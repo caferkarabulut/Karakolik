@@ -1,39 +1,33 @@
-<!DOCTYPE html><html lang="tr"><head>
-<meta charset="UTF-8"><title>Basketbol Maçları</title>
-<link rel="stylesheet" href="css/styles.css">
+<!DOCTYPE html><html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>NBA – Maçlar & Puan Durumu</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head><body>
-<!-- ortak navbar: üst şerit -->
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 mb-4">
   <a class="navbar-brand" href="index.html">Karakolik</a>
-
-  <!-- ortadaki linkler -->
   <div class="navbar-nav me-auto">
     <a class="nav-link" href="favorites.html">Favoriler</a>
-    <a class="nav-link" href="index.html">Ana Sayfa</a>
     <a class="nav-link" href="football.html">Futbol</a>
-    <a class="nav-link" href="basketball.html">Basketbol</a>
+    <a class="nav-link active" aria-current="page" href="basketball.html">Basketbol</a>
     <a class="nav-link" href="volleyball.html">Voleybol</a>
-  </div>
-
-  <!-- SAĞ tarafta giriş / kayıt / hoş-geldin -->
-  <div class="d-flex align-items-center">
-    <a id="login-link" class="btn btn-sm btn-outline-light me-2" href="login.html">Giriş</a>
-    <a id="register-link" class="btn btn-sm btn-outline-light me-2" href="register.html">Kayıt</a>
-
-    <span id="welcome-div" class="text-white" style="display:none">
-      Merhaba <b id="welcome-user"></b>
-      <button class="btn btn-sm btn-outline-light ms-2" onclick="logout()">Çıkış</button>
-    </span>
   </div>
 </nav>
 
+<h2>NBA – Yaklaşan / Son Maçlar</h2>
+<table><thead>
+  <tr><th>Fav</th><th>Tarih</th><th>Ev Sahibi</th><th>Deplasman</th><th>Skor</th></tr>
+</thead><tbody id="match-body"></tbody></table>
 
-<h2>Futbol – Yaklaşan / Son Maçlar</h2>
-<table>
-  <thead><tr><th>Fav</th><th>Tarih</th><th>Ev Sahibi</th><th>Deplasman</th><th>Skor</th></tr></thead>
-  <tbody id="match-body"></tbody>
-</table>
+<h2 class="mt-4">Puan Durumu</h2>
+<table><thead>
+  <tr><th>S</th><th>Takım</th><th>O</th><th>G</th><th>M</th><th>P</th></tr>
+</thead><tbody id="stand-body"></tbody></table>
 
 <script src="js/scripts.js"></script>
-<script>loadMatches('basketball');</script>
+<script>
+  loadMatches('basketball');       // scripts.js’te mevcut
+  loadStandings('basketball');     // aynı mantıkla çağrılır
+</script>
 </body></html>
