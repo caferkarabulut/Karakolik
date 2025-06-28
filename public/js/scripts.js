@@ -1,92 +1,30 @@
-async function loadMatches(sport){
-  try{
-    const res  = await fetch(`/api/${sport}/matches`);
-    const data = await res.json();
-    const tbody= document.getElementById('match-body');
-    tbody.innerHTML = '';
-
-    data.forEach(m=>{
-      const tr = document.createElement('tr');
-      const token = getToken();   // kullanıcı giriş yapmış mı?
-tr.innerHTML = `
-  <td>
-    ${ token
-        ? `<button onclick="addFav(${m.id})">☆</button>`
-        : '' }
-  </td>
-  <td>${new Date(m.date).toLocaleString('tr-TR')}</td>
-  <td>${m.home}</td>
-  <td>${m.away}</td>
-  <td>${m.score}</td>`;
-
-      tbody.appendChild(tr);
-    });
-  }catch(e){
-    console.error(e);
-    alert('Maç verisi alınamadı');
-  }
-}
-/* ---------- AUTH ---------- */
+/* =========================
+   1) ORTAK YARDIMCILAR
+   ========================= */
 function saveToken(t){ localStorage.setItem('token', t); }
-function getToken(){ return localStorage.getItem('token'); }
-function logout(){ localStorage.removeItem('token'); location.href='index.html'; }
-
-/* Login */
-async function loginUser(e){
-  e.preventDefault();
-  const form = e.target;
-  const body = {
-    username: form.username.value,
-    password: form.password.value
-  };
-  try{
-    const res = await fetch('/login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
-    if(!res.ok) throw await res.json();
-    const {token} = await res.json();
-    saveToken(token);
-    alert('Giriş başarılı');
-    location.href='index.html';
-  }catch(err){
-    alert(err.msg || 'Giriş hatası');
-  }
+function getToken(){  return localStorage.getItem('token'); }
+function logout(){    localStorage.removeItem('token'); location.href='index.html'; }
+/* Bootstrap alert oluşturur */
+function showAlert(msg, type='danger'){
+  const holder = document.getElementById('auth-alert');
+  if(!holder) return;
+  holder.innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+      ${msg}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>`;
 }
 
-/* Register */
-async function registerUser(e){
-  e.preventDefault();
-  const form = e.target;
-  const body = {
-    username: form.username.value,
-    password: form.password.value
-  };
-  try{
-    const res = await fetch('/register',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
-    if(!res.ok) throw await res.json();
-    alert('Kayıt tamam, şimdi giriş yapın');
-    location.href='login.html';
-  }catch(err){
-    alert(err.msg || 'Kayıt hatası');
-  }
-}
 
-/* ---------- Navbar Durumu ---------- */
+/* ============== NAVBAR ============== */
 function renderNav(){
   const token = getToken();
   const loginLink = document.getElementById('login-link');
   const regLink   = document.getElementById('register-link');
   const welcome   = document.getElementById('welcome-div');
-  if(!loginLink) return;          // sadece index.html’de var
+  if(!loginLink) return;          // nav olmayan sayfalarda
 
   if(token){
-    // basit decode (payload kısmı)
     const payload = JSON.parse(atob(token.split('.')[1]));
     welcome.style.display = 'inline';
     document.getElementById('welcome-user').textContent = payload.username;
@@ -98,13 +36,86 @@ function renderNav(){
 }
 document.addEventListener('DOMContentLoaded', renderNav);
 
+/* ============== AUTH ============== */
+async function loginUser(e){
+  e.preventDefault();
+  const { username, password } = e.target;
+  try{
+    const r = await fetch('/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username: username.value, password: password.value })
+    });
+    if(!r.ok) throw await r.json();
+    const { token } = await r.json();
+    saveToken(token);
+    showAlert('Giriş başarılı', 'success');
+    location.href='index.html';
+  }catch(err){ showAlert(err.msg || 'Giriş hatası'); }
+}
 
-async function addFav(matchId){
+async function registerUser(e){
+  e.preventDefault();
+  const { username, password } = e.target;
+  try{
+    const r = await fetch('/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username: username.value, password: password.value })
+    });
+    if(!r.ok) throw await r.json();
+    showAlert('Kayıt tamam – şimdi giriş yapın', 'success')
+    location.href='login.html';
+  }catch(err){ showAlert(err.msg || 'Kayıt hatası'); }
+}
+
+/* =========================
+   2) MAÇ FİKSTÜRÜ + FAVORİLER
+   ========================= */
+async function loadMatches(sport, leagueId=null){
+  try{
+    const url = leagueId
+      ? `/api/${sport}/matches?league=${leagueId}&season=2023`
+      : `/api/${sport}/matches`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+ /* >>> EKLENEN KONTROL ------------- */
+    if (!Array.isArray(data)) {          // 500 veya hata objesi geldiyse
+      console.error('[loadMatches]', data);
+      alert(data.msg || 'Maç verisi alınamadı');
+      return;                            // tablo doldurma kısmına girmesin
+    }
+    /* <<< ----------------------------- */
+
+    const tbody= document.getElementById('match-body');
+    if(!tbody) return;                    // sayfa kontrolü
+    tbody.innerHTML = '';
+
+    data.forEach(m=>{
+      const token = getToken();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${ token ? `<button onclick="addFav(${m.id},this)">☆</button>` : '' }</td>
+        <td>${new Date(m.date).toLocaleString('tr-TR')}</td>
+        <td>${m.home}</td>
+        <td>${m.away}</td>
+        <td>${m.score}</td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(e){
+    console.error(e);
+    alert('Maç verisi alınamadı');
+  }
+}
+
+/* Favori ekle */
+async function addFav(matchId, btn){
   const token = getToken();
   if(!token) return alert('Önce giriş yapmalısınız');
 
   try{
-    const res = await fetch('/api/favorites',{
+    const r = await fetch('/api/favorites',{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -112,46 +123,110 @@ async function addFav(matchId){
       },
       body: JSON.stringify({ matchId })
     });
-    if(!res.ok) throw await res.json();
-    alert('Favorilere eklendi');
-  }catch(err){
-    alert(err.msg || 'Favori eklenemedi');
-  }
+    if(!r.ok) throw await r.json();
+    btn.textContent = '★';
+    btn.disabled = true;
+  }catch(err){ alert(err.msg || 'Favori eklenemedi'); }
 }
 
-
-/* -------- Favoriler listele -------- */
+/* Favoriler listele */
 async function loadFavorites(){
   try{
-    const res = await fetch('/api/favorites',{
+    const r = await fetch('/api/favorites',{
       headers:{ 'Authorization':'Bearer '+getToken() }
     });
-    if(!res.ok) throw await res.json();
-    const data = await res.json();
+    if(!r.ok) throw await r.json();
+    const data = await r.json();
     const tbody = document.getElementById('fav-body');
-    tbody.innerHTML = '';
+    if(!tbody) return;
+    tbody.innerHTML='';
     data.forEach(f=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><button onclick="removeFav(${f.id})">🗑️</button></td>
-        <td>${new Date(f.date).toLocaleString('tr-TR')}</td>
-        <td>${f.home}</td>
-        <td>${f.away}</td>
-        <td>${f.score}</td>`;
-      tbody.appendChild(tr);
+      tbody.innerHTML += `
+        <tr>
+          <td><button onclick="removeFav(${f.id})">🗑️</button></td>
+          <td>${new Date(f.date).toLocaleString('tr-TR')}</td>
+          <td>${f.home}</td><td>${f.away}</td><td>${f.score}</td>
+        </tr>`;
     });
-  }catch(e){ alert(e.msg || 'Favoriler alınamadı'); }
+  }catch(err){ alert(err.msg || 'Favoriler alınamadı'); }
 }
 
-/* -------- Favori sil -------- */
+/* Favori sil */
 async function removeFav(id){
   if(!confirm('Silinsin mi?')) return;
   try{
-    const res = await fetch('/api/favorites/'+id,{
+    const r = await fetch('/api/favorites/'+id,{
       method:'DELETE',
       headers:{ 'Authorization':'Bearer '+getToken() }
     });
-    if(!res.ok) throw await res.json();
-    loadFavorites();               // listeyi yenile
-  }catch(e){ alert(e.msg || 'Silinemedi'); }
+    if(!r.ok) throw await r.json();
+    loadFavorites();
+  }catch(err){ alert(err.msg || 'Silinemedi'); }
 }
+
+/* =========================
+   3) LİG KUTULARI + PUAN TABLOSU
+   ========================= */
+const leagueMap = {
+  203 : 'Süper Lig',
+  39  : 'Premier League',
+  140 : 'La Liga',
+  135 : 'Serie A',
+  78  : 'Bundesliga'
+};
+
+/* Lig kartlarını doldur (football.html sayfasında) */
+function buildLeagueCards(){
+  const wrap = document.getElementById('leagueCards');
+  if(!wrap) return;                       // diğer sayfalarda yok
+  Object.entries(leagueMap).forEach(([id, name])=>{
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `
+      <div class="card h-100 text-center shadow-sm">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <button class="btn btn-outline-primary"
+                  onclick="selectLeague(${id}, '${name}')">${name}</button>
+        </div>
+      </div>`;
+    wrap.appendChild(col);
+  });
+}
+document.addEventListener('DOMContentLoaded', buildLeagueCards);
+
+/* Lig kartına tıklanınca */
+function selectLeague(leagueId, leagueName){
+  showStandings(leagueId, 2023, leagueName);
+  loadMatches('football', leagueId);
+}
+
+/* Puan durumu çek & göster */
+async function showStandings(league, season, name){
+  try{
+    const res  = await fetch(`/api/football/standings?league=${league}&season=${season}`);
+    const data = await res.json();
+
+    const title = document.getElementById('stand-title');
+    const tbody = document.getElementById('standBody');
+    const table = document.getElementById('standTable');
+    if(!tbody) return;
+
+    title.textContent = `${name} ${season}/${season+1} Puan Durumu`;
+    title.style.display = 'block';
+
+    tbody.innerHTML='';
+    data.forEach(r=>{
+      tbody.innerHTML += `
+        <tr>
+          <td>${r.rank}</td><td>${r.team}</td>
+          <td>${r.played}</td><td>${r.win}</td><td>${r.draw}</td><td>${r.lose}</td>
+          <td>${r.goals_for}</td><td>${r.goals_against}</td><td><b>${r.points}</b></td>
+        </tr>`;
+    });
+    table.style.display = 'table';
+  }catch(e){
+    console.error(e);
+    alert('Puan durumu alınamadı');
+  }
+}
+/* ============== ARAMA ============== */

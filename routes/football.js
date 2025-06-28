@@ -1,64 +1,81 @@
 const express = require('express');
 const axios   = require('axios');
-const sql     = require('mssql');
 
-const SPORT   = 'football';
-const API_URL = 'https://v3.football.api-sports.io/fixtures';
-const TTL_MIN = 15;
+const SPORT      = 'football';
+const FIX_URL    = 'https://v3.football.api-sports.io/fixtures';
+const STAND_URL  = 'https://v3.football.api-sports.io/standings';
 
-module.exports = (dbPool)=>{
+module.exports = () => {
   const router = express.Router();
 
-  router.get('/matches', async (_req,res)=>{
-    try{
-      const pool = await dbPool;
+  /* ============ FİKSTÜR ============ */
+  // /api/football/matches?league=39&season=2024
+  router.get('/matches', async (req, res) => {
+    try {
+      const params = { next: 10 };           // yaklaşan / son 10
+      if (req.query.league) params.league = req.query.league;
+      if (req.query.season) params.season = req.query.season;
 
-      /* Cache */
-      const cached = await pool.request()
-        .input('sport',sql.NVarChar,SPORT)
-        .query(`
-          SELECT api_id,home,away,[date],score
-          FROM Matches
-          WHERE sport=@sport
-            AND DATEDIFF(MINUTE,date_fetched,GETDATE()) < ${TTL_MIN}
-          ORDER BY [date] DESC`);
-      if(cached.recordset.length) return res.json(cached.recordset);
-
-      /* API */
-      const api = await axios.get(API_URL,{
-        params : { next: 10 },
+      const api = await axios.get(FIX_URL, {
+        params,
         headers: { 'x-apisports-key': process.env.API_FOOTBALL_KEY }
       });
 
-      const rows = api.data.response.map(fx=>({
-        sport : SPORT,
-        api_id: fx.fixture.id,
-        home  : fx.teams.home.name,
-        away  : fx.teams.away.name,
-        date  : fx.fixture.date,
-        score : `${fx.goals.home ?? '-'} - ${fx.goals.away ?? '-'}`
+      const rows = api.data.response.map(fx => ({
+        id   : fx.fixture.id,
+        home : fx.teams.home.name,
+        away : fx.teams.away.name,
+        date : fx.fixture.date,
+        score: `${fx.goals.home ?? '-'} - ${fx.goals.away ?? '-'}`
       }));
 
-      /* DB güncelle */
-      await pool.request()
-        .input('sport',sql.NVarChar,SPORT)
-        .query('DELETE FROM Matches WHERE sport=@sport');
-
-      const tbl = new sql.Table('Matches');
-      tbl.columns.add('sport',        sql.NVarChar(20));
-      tbl.columns.add('api_id',       sql.Int);
-      tbl.columns.add('home',         sql.NVarChar(100));
-      tbl.columns.add('away',         sql.NVarChar(100));
-      tbl.columns.add('date',         sql.DateTime2);
-      tbl.columns.add('score',        sql.NVarChar(20));
-      tbl.columns.add('date_fetched', sql.DateTime2);
-
-      const now = new Date();
-      rows.forEach(r=>tbl.rows.add(r.sport,r.api_id,r.home,r.away,r.date,r.score,now));
-      await pool.request().bulk(tbl);
-
       res.json(rows);
-    }catch(e){console.error(e);res.status(500).json({msg:'football route error'});}
+    } catch (e) {
+      console.error('[matches ERR]', e.response?.data || e.message);
+      res.status(500).json({ msg: 'api-fetch error' });
+    }
+  });
+
+  /* ============ PUAN DURUMU ============ */
+  // /api/football/standings?league=203&season=2023
+  router.get('/standings', async (req, res) => {
+    try {
+      const league = req.query.league || 203;   // varsayılan Süper Lig
+      const season = req.query.season || 2023;
+
+      const api = await axios.get(STAND_URL, {
+        params : { league, season },
+        headers: { 'x-apisports-key': process.env.API_FOOTBALL_KEY }
+      });
+
+      const resp = api.data.response;
+
+      /* Ücretsiz planda bazı liglerde dolu gelmez → boş dizi döndür */
+      if (!Array.isArray(resp) || !resp.length ||
+          !resp[0].league.standings.length) {
+        return res.json([]);        // front-end boş tablo gösterir
+      }
+
+      const table = resp[0].league.standings[0];   // API formatı
+
+      const tbl = table.map(r => ({
+        rank   : r.rank,
+        team   : r.team.name,
+        played : r.all.played,
+        win    : r.all.win,
+        draw   : r.all.draw,
+        lose   : r.all.lose,
+        points : r.points,
+        goals_for     : r.goals?.for      ?? 0,
+        goals_against : r.goals?.against  ?? 0
+        }));
+
+
+      res.json(tbl);
+    } catch (e) {
+      console.error('[standings ERR]', e.response?.data || e.message);
+      res.status(500).json({ msg: 'api-fetch error' });
+    }
   });
 
   return router;

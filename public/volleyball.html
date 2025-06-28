@@ -2,21 +2,31 @@
 <meta charset="UTF-8"><title>Voleybol Maçları</title>
 <link rel="stylesheet" href="css/styles.css">
 </head><body>
-<nav>
-  <a href="football.html">Futbol</a>
-  <a href="basketball.html">Basketbol</a>
-  <a href="volleyball.html">Voleybol</a>
+<!-- ortak navbar: üst şerit -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 mb-4">
+  <a class="navbar-brand" href="index.html">Karakolik</a>
 
-  <span style="float:right">
-    <a id="login-link" href="login.html">Giriş</a> |
-    <a id="register-link" href="register.html">Kayıt</a>
+  <!-- ortadaki linkler -->
+  <div class="navbar-nav me-auto">
+    <a class="nav-link" href="favorites.html">Favoriler</a>
+    <a class="nav-link" href="index.html">Ana Sayfa</a>
+    <a class="nav-link" href="football.html">Futbol</a>
+    <a class="nav-link" href="basketball.html">Basketbol</a>
+    <a class="nav-link" href="volleyball.html">Voleybol</a>
+  </div>
 
-    <span id="welcome-div" style="display:none">
-      Merhaba <b id="welcome-user"></b> |
-      <button onclick="logout()">Çıkış</button>
+  <!-- SAĞ tarafta giriş / kayıt / hoş-geldin -->
+  <div class="d-flex align-items-center">
+    <a id="login-link" class="btn btn-sm btn-outline-light me-2" href="login.html">Giriş</a>
+    <a id="register-link" class="btn btn-sm btn-outline-light me-2" href="register.html">Kayıt</a>
+
+    <span id="welcome-div" class="text-white" style="display:none">
+      Merhaba <b id="welcome-user"></b>
+      <button class="btn btn-sm btn-outline-light ms-2" onclick="logout()">Çıkış</button>
     </span>
-  </span>
+  </div>
 </nav>
+
 
 
 <h2>Voleybol – Yaklaşan / Son Maçlar</h2>
