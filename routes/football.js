@@ -18,11 +18,11 @@ router.get('/matches', async (req, res) => {
     });
 
     const rows = api.data.response.map(fx => ({
-      id   : fx.fixture.id,
-      home : fx.teams.home.name,
-      away : fx.teams.away.name,
-      date : fx.fixture.date,
-      score: `${fx.goals.home ?? '-'} - ${fx.goals.away ?? '-'}`
+      id    : fx.fixture.id,
+      home  : fx.teams.home.name,
+      away  : fx.teams.away.name,
+      date  : fx.fixture.date,
+      score : `${fx.goals.home ?? '-'} - ${fx.goals.away ?? '-'}`
     }));
 
     res.json(rows);
@@ -43,13 +43,16 @@ router.get('/standings', async (req, res) => {
     });
 
     const table = (api.data.response[0]?.league?.standings[0] || []).map(r => ({
-      rank  : r.rank,
-      team  : r.team.name,
-      played: r.all.played,
-      win   : r.all.win,
-      draw  : r.all.draw,
-      lose  : r.all.lose,
-      points: r.points
+      rank          : r.rank,
+      team          : r.team.name,
+      team_id       : r.team.id,                    
+      played        : r.all.played,
+      win           : r.all.win,
+      draw          : r.all.draw,
+      lose          : r.all.lose,
+      goals_for     : r.all.goals.for,                
+      goals_against : r.all.goals.against,           
+      points        : r.points
     }));
 
     res.json(table);
