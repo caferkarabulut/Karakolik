@@ -23,8 +23,6 @@ module.exports = (dbPool) => {
 
     try {
       const pool = await dbPool;
-
-      
       const have = await pool.request()
         .input('tid', sql.Int, team_id)
         .query('SELECT 1 FROM Teams WHERE id = @tid');

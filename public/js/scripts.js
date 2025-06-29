@@ -53,6 +53,7 @@ async function loginUser(e) {
       })
     });
     if (!r.ok) throw await r.json();
+
     const { token } = await r.json();
     saveToken(token);
     showAlert('Giriş başarılı', 'success');
@@ -82,7 +83,6 @@ async function registerUser(e) {
   }
 }
 
-
 const leagueMap = {
   203: 'Süper Lig',
   39 : 'Premier League',
@@ -90,6 +90,7 @@ const leagueMap = {
   135: 'Serie A',
   78 : 'Bundesliga'
 };
+
 function buildLeagueCards() {
   const wrap = document.getElementById('leagueCards');
   if (!wrap) return;
@@ -209,7 +210,6 @@ async function toggleTeamFav(teamId, btn) {
     alert('Sunucuya bağlanırken hata oluştu');
   }
 }
-
 
 async function loadFavTeams() {
   const wrap = document.getElementById('fav-teams');
