@@ -1,13 +1,10 @@
-// cache-refresh.js
 const cron  = require('node-cron');
 const fetch = (...a) => import('node-fetch').then(({default: f}) => f(...a));
 
 cron.schedule('*/30 * * * *', async () => {
   try {
-    // Futbol fikstürleri
     await fetch('http://localhost:3000/api/football/matches?league=203&season=2023');
 
-    // Futbol puan durumları
     const seasons = [
       { league: 203, name: 'Süper Lig' },
       { league: 39,  name: 'Premier League' },

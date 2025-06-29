@@ -1,4 +1,4 @@
-// dbPool.js – MSSQL havuzu tek noktadan üretilip paylaşılsın
+
 const sql = require('mssql');
 
 module.exports = sql.connect({

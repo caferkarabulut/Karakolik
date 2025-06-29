@@ -6,8 +6,6 @@ const STAND_URL = 'https://v3.football.api-sports.io/standings';
 
 const router = express.Router();
 
-/* -------- Fikstür -------- */
-// GET /api/football/matches?league=39&season=2024
 router.get('/matches', async (req, res) => {
   try {
     const params = { next: 10 };
@@ -34,8 +32,6 @@ router.get('/matches', async (req, res) => {
   }
 });
 
-/* -------- Puan Durumu -------- */
-// GET /api/football/standings?league=203&season=2024
 router.get('/standings', async (req, res) => {
   try {
     const league = req.query.league || 203;

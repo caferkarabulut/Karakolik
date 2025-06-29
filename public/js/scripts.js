@@ -1,10 +1,8 @@
-/* =========================
-   1) ORTAK YARDIMCILAR
-   ========================= */
+
 function saveToken(t){ localStorage.setItem('token', t); }
 function getToken(){  return localStorage.getItem('token'); }
 function logout(){    localStorage.removeItem('token'); location.href='index.html'; }
-/* Bootstrap alert */
+
 function showAlert(msg, type='danger'){
   const holder = document.getElementById('auth-alert');
   if(!holder) return;
@@ -15,13 +13,12 @@ function showAlert(msg, type='danger'){
     </div>`;
 }
 
-/* ============== NAVBAR ============== */
 function renderNav(){
   const token = getToken();
   const loginLink = document.getElementById('login-link');
   const regLink   = document.getElementById('register-link');
   const welcome   = document.getElementById('welcome-div');
-  if(!loginLink) return;          // nav olmayan sayfalarda
+  if(!loginLink) return;          
 
   if(token){
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -35,7 +32,6 @@ function renderNav(){
 }
 document.addEventListener('DOMContentLoaded', renderNav);
 
-/* ============== AUTH ============== */
 async function loginUser(e){
   e.preventDefault();
   const { username, password } = e.target;
@@ -68,18 +64,12 @@ async function registerUser(e){
   }catch(err){ showAlert(err.msg || 'Kayıt hatası'); }
 }
 
-/* =========================
-   2) MAÇ FİKSTÜRÜ + FAVORİLER
-   ========================= */
-
-/* (a)  ► loadMatches(league, season)  */
 async function loadMatches(leagueId, season){
   try{
     const url = `/api/football/matches?league=${leagueId}&season=${season}`;
     const res  = await fetch(url);
     const data = await res.json();
 
-    /* Guard – beklenmeyen obje geldiyse */
     if (!Array.isArray(data)){
       console.error('[loadMatches]', data);
       alert(data.msg || 'Maç verisi alınamadı');
@@ -112,7 +102,6 @@ async function loadMatches(leagueId, season){
   }
 }
 
-/* Favori ekle */
 async function addFav(matchId, btn){
   const token = getToken();
   if(!token) return alert('Önce giriş yapmalısınız');
@@ -132,7 +121,6 @@ async function addFav(matchId, btn){
   }catch(err){ alert(err.msg || 'Favori eklenemedi'); }
 }
 
-/* Favoriler listele */
 async function loadFavorites(){
   try{
     const r = await fetch('/api/favorites',{
@@ -154,7 +142,6 @@ async function loadFavorites(){
   }catch(err){ alert(err.msg || 'Favoriler alınamadı'); }
 }
 
-/* Favori sil */
 async function removeFav(id){
   if(!confirm('Silinsin mi?')) return;
   try{
@@ -167,9 +154,6 @@ async function removeFav(id){
   }catch(err){ alert(err.msg || 'Silinemedi'); }
 }
 
-/* =========================
-   3) LİG KUTULARI + PUAN TABLOSU
-   ========================= */
 const leagueMap = {
   203 : 'Süper Lig',
   39  : 'Premier League',
@@ -178,7 +162,6 @@ const leagueMap = {
   78  : 'Bundesliga'
 };
 
-/* Lig kartlarını doldur */
 function buildLeagueCards(){
   const wrap = document.getElementById('leagueCards');
   if(!wrap) return;
@@ -197,16 +180,14 @@ function buildLeagueCards(){
 }
 document.addEventListener('DOMContentLoaded', buildLeagueCards);
 
-/* (b)  ► Lig kartına tıklanınca */
 function selectLeague(leagueId, season, leagueName){
   showStandings(leagueId, season, leagueName);
-  loadMatches(leagueId, season);              // ☆ butonları için
+  loadMatches(leagueId, season);              
 }
 
-/* Puan durumu çek & göster  –  favori takımlar ★ */
 async function showStandings(league, season, name){
   try{
-    /* 1) Puan tablosu */
+   
     const res  = await fetch(`/api/football/standings?league=${league}&season=${season}`);
     const data = await res.json();
 
@@ -215,7 +196,6 @@ async function showStandings(league, season, name){
     const table = document.getElementById('standTable');
     if(!tbody) return;
 
-    /* 2) Kullanıcının favori takım id’leri */
     let favIds = [];
     const token = getToken();
     if (token){
@@ -223,18 +203,18 @@ async function showStandings(league, season, name){
         headers:{ 'Authorization':'Bearer '+token }
       });
       if (favRes.ok){
-        const favTeams = await favRes.json();          // [{id,name,logo}...]
-        favIds = favTeams.map(t=>t.id);                // [101,1950,...]
+        const favTeams = await favRes.json();          
+        favIds = favTeams.map(t=>t.id);               
       }
     }
 
-    /* 3) Tabloyu doldur */
+    
     title.textContent = `${name} ${season}/${season+1} Puan Durumu`;
     title.style.display = 'block';
 
     tbody.innerHTML = '';
     data.forEach(r=>{
-      const isFav = favIds.includes(r.team_id);        // ★ mı ☆ mı?
+      const isFav = favIds.includes(r.team_id);        
       tbody.innerHTML += `
         <tr>
           <td>${r.rank}</td>
@@ -256,15 +236,10 @@ async function showStandings(league, season, name){
   }
 }
 
-
-/* (c)  ► Sayfa ilk açılışta Süper Lig 2023 */
 document.addEventListener('DOMContentLoaded', ()=>{
   selectLeague(203, 2023, 'Süper Lig');
 });
-/* ============== ARAMA ============== */
 
-/* ===== TAKIM FAVORİLERİ ===== */
-/* ===== TAKIM FAVORİ toggle ===== */
 async function toggleTeamFav(teamId, btn){
   try{
     const r = await fetch('/api/team-fav',{
@@ -273,18 +248,14 @@ async function toggleTeamFav(teamId, btn){
         'Content-Type':'application/json',
         'Authorization':'Bearer '+getToken()
       },
-      body: JSON.stringify({ team_id: teamId })   // ←← değişen satır
+      body: JSON.stringify({ team_id: teamId })   
     });
     const { added } = await r.json();
     btn.innerHTML = added ? '★' : '☆';
-    /* ↴ Favoriler sayfasını açık tuttuysak yenile */
     loadFavTeams();
   }catch(e){ console.error('[toggleTeamFav]', e); }
 }
 
-
-
-/* Favori TAKIM & MAÇ listesi sayfası */
 async function loadFavTeams(){
   const wrap = document.getElementById('fav-teams');
   if(!wrap) return;

@@ -4,14 +4,13 @@ const sql     = require('mssql');
 module.exports = (dbPool) => {
   const router = express.Router();
 
-  // GET /api/favorites → tüm favoriler
   router.get('/', async (req, res) => {
     const pool = await dbPool;
     const rs   = await pool.request().query('SELECT * FROM Favorites');
     res.json(rs.recordset);
   });
 
-  // POST /api/favorites { fixture_id, home, away, date, score }
+  
   router.post('/', async (req, res) => {
     const { fixture_id, home, away, date, score } = req.body;
     const pool = await dbPool;
@@ -27,7 +26,6 @@ module.exports = (dbPool) => {
     res.status(201).json({ msg: 'eklendi' });
   });
 
-  // DELETE /api/favorites/:id
   router.delete('/:id', async (req, res) => {
     const pool = await dbPool;
     await pool.request()

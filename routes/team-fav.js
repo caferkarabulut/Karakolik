@@ -6,7 +6,6 @@ const jwt     = require('jsonwebtoken');
 module.exports = (dbPool) => {
   const router = express.Router();
 
-  // Auth middleware
   router.use((req, res, next) => {
     const tok = (req.headers.authorization || '').split(' ')[1];
     if (!tok) return res.sendStatus(401);
@@ -18,14 +17,12 @@ module.exports = (dbPool) => {
     }
   });
 
-  // POST toggle favorite team
   router.post('/', async (req, res) => {
     const { team_id } = req.body;
     if (!team_id) return res.status(400).json({ msg:'team_id gerekli' });
 
     try {
       const pool = await dbPool;
-      // insert/update Teams table if needed
       const have = await pool.request()
         .input('tid', sql.Int, team_id)
         .query('SELECT 1 FROM Teams WHERE id=@tid');
@@ -41,7 +38,6 @@ module.exports = (dbPool) => {
           .input('l', sql.NVarChar(255), t.logo)
           .query('INSERT INTO Teams(id,name,logo) VALUES(@i,@n,@l)');
       }
-      // toggle
       const r = await pool.request()
         .input('uid', sql.Int, req.user.id)
         .input('tid', sql.Int, team_id)
@@ -59,7 +55,6 @@ module.exports = (dbPool) => {
     }
   });
 
-  // GET list favorites
   router.get('/', async (req, res) => {
     try {
       const pool = await dbPool;

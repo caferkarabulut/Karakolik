@@ -1,6 +1,4 @@
-/******************************************************************
- *  index.js – Karakolik sunucusu (yalnız futbol, hatasız)
- ******************************************************************/
+
 require('dotenv').config();
 
 const express  = require('express');
@@ -17,7 +15,7 @@ app.use(cors());
 app.use(express.static('public'));
 app.use(morgan('combined'));
 
-/* ---------- MSSQL Havuzu (tek havuz) ---------- */
+
 const dbPool = sql.connect({
   user    : process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -26,7 +24,6 @@ const dbPool = sql.connect({
   options : { trustServerCertificate: true }
 });
 
-/* ---------- Validation helper ---------- */
 const validate = rules => [
   ...rules,
   (req, res, next) => {
@@ -36,7 +33,6 @@ const validate = rules => [
   }
 ];
 
-/* ---------- AUTH (register & login) ---------- */
 app.post(
   '/register',
   validate([ body('username').isLength({ min: 3 }), body('password').isLength({ min: 6 }) ]),
@@ -86,16 +82,12 @@ app.post(
   }
 );
 
-/* ---------- SPOR ROUTE – SADECE FUTBOL ---------- */
-// routes/football.js doğrudan Router nesnesi export ediyor :contentReference[oaicite:2]{index=2}
 const footballRouter = require('./routes/football');
 app.use('/api/football', footballRouter);
 
-/* ---------- Favoriler ---------- */
-// favorites.js ve team-fav.js factory → dbPool ile çağrılır 
+
 app.use('/api/favorites', require('./routes/favorites')(dbPool));
 app.use('/api/team-fav',  require('./routes/team-fav')(dbPool));
 
-/* ---------- Sunucu ---------- */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running → http://localhost:${PORT}`));
