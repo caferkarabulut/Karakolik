@@ -28,7 +28,7 @@ const validate = rules => [
   ...rules,
   (req, res, next) => {
     const errs = validationResult(req);
-    if (!errs.isEmpty()) return res.status(400).json(errs.array());
+    if (!errs.isEmpty( )) return res.status(400).json(errs.array());
     next();
   }
 ];
@@ -84,8 +84,6 @@ app.post(
 
 const footballRouter = require('./routes/football');
 app.use('/api/football', footballRouter);
-
-
 app.use('/api/favorites', require('./routes/favorites')(dbPool));
 app.use('/api/team-fav',  require('./routes/team-fav')(dbPool));
 

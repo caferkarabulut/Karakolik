@@ -26,6 +26,7 @@ function renderNav() {
   const loginL   = document.getElementById('login-link');
   const regL     = document.getElementById('register-link');
   const welcome  = document.getElementById('welcome-div');
+
   if (!loginL) return;
 
   if (token) {
@@ -38,6 +39,7 @@ function renderNav() {
     loginL.style.display = regL.style.display = 'inline';
   }
 }
+
 document.addEventListener('DOMContentLoaded', renderNav);
 
 async function loginUser(e) {
@@ -52,6 +54,7 @@ async function loginUser(e) {
         password: password.value
       })
     });
+    
     if (!r.ok) throw await r.json();
 
     const { token } = await r.json();
@@ -233,4 +236,4 @@ async function loadFavTeams() {
     console.error(e);
     wrap.innerHTML = '<p class="text-danger">Favoriler yüklenemedi</p>';
   }
-}
+}13
