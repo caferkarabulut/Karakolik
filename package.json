@@ -1,0 +1,41 @@
+{
+  "name": "karakolik",
+  "version": "1.0.0",
+  "description": "A full-stack web application that lets users follow live football fixtures, league standings, and manage their favorite teams and matches. Built with Node.js, Express, and Microsoft SQL Server, powered by real-time data from the API-Football service.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caferkarabulut/Karakolik.git"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "mssql",
+    "jwt",
+    "football-api",
+    "full-stack"
+  ],
+  "author": "caferkarabulut",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/caferkarabulut/Karakolik/issues"
+  },
+  "homepage": "https://github.com/caferkarabulut/Karakolik#readme",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "mssql": "^12.2.0",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2"
+  }
+}
